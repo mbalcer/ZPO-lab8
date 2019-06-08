@@ -1,4 +1,4 @@
-package pl.mbalcer.managementsystem.entity;
+package pl.mbalcer.managementsystem.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

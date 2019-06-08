@@ -1,26 +1,23 @@
-package pl.mbalcer.managementsystem.entity;
+package pl.mbalcer.managementsystem.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "projects")
-public class Project {
-
+@Table(name = "users_in_projects")
+public class UserInProject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @NotNull
-    private String name;
-    private String description;
 
     @ManyToOne
-    private User leader;
+    private User user;
+    @ManyToOne
+    private Project project;
 }
