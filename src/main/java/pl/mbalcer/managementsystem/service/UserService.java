@@ -18,6 +18,10 @@ public class UserService {
         return userRepository.getByLogin(login);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.getByEmail(email);
+    }
+
     public User createUser(User user) {
         return userRepository.save(user);
     }

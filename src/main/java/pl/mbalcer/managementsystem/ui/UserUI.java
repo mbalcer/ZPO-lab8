@@ -33,7 +33,6 @@ public class UserUI extends UI {
         Button signIn = new Button("Sign in");
         signIn.addClickListener(event -> {
            // Loging
-           Notification.show("Zalogowany", Notification.Type.TRAY_NOTIFICATION);
         });
 
         formLogin.addComponents(name, password, signIn);
@@ -57,6 +56,10 @@ public class UserUI extends UI {
                 Notification.show("Login must be at least 6 characters long", Notification.Type.TRAY_NOTIFICATION);
             else if(passwordRegister.getValue().length()<6)
                 Notification.show("Password must be at least 6 characters long", Notification.Type.TRAY_NOTIFICATION);
+            else if(userService.getUserByLogin(nameRegister.getValue()) != null)
+                Notification.show("The user with this login already exists", Notification.Type.TRAY_NOTIFICATION);
+            else if(userService.getUserByEmail(email.getValue()) != null)
+                Notification.show("The user with this email already exists", Notification.Type.TRAY_NOTIFICATION);
             else {
                 User newUser = new User(0l, nameRegister.getValue(), passwordRegister.getValue(), email.getValue());
                 newUser = userService.createUser(newUser);

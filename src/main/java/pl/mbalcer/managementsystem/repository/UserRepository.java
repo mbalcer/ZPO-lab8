@@ -5,4 +5,5 @@ import pl.mbalcer.managementsystem.model.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     User getByLogin(String login);
+    User getByEmail(String email);
 }
