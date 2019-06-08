@@ -11,7 +11,7 @@ import pl.mbalcer.managementsystem.service.UserService;
 import java.util.Arrays;
 
 @SpringUI(path = "")
-public class UserUI extends UI {
+public class LoginPanel extends UI {
 
     @Autowired
     private UserService userService;
@@ -32,7 +32,17 @@ public class UserUI extends UI {
         PasswordField password = new PasswordField("Password");
         Button signIn = new Button("Sign in");
         signIn.addClickListener(event -> {
-           // Loging
+            if (userService.getUserByLogin(name.getValue()) == null)
+                Notification.show("There isn't user with a given login", Notification.Type.TRAY_NOTIFICATION);
+            else {
+                User loginUser = userService.getUserByLogin(name.getValue());
+                if (loginUser.getPassword().equals(password.getValue())) {
+                    Notification.show(loginUser.getLogin()+" is logged on", Notification.Type.TRAY_NOTIFICATION);
+                    clearField(name, password);
+                    // TODO Transition to the user's panel
+                } else
+                    Notification.show("The password provided is incorrect", Notification.Type.TRAY_NOTIFICATION);
+            }
         });
 
         formLogin.addComponents(name, password, signIn);
