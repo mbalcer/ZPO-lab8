@@ -39,7 +39,11 @@ public class LoginPanel extends UI {
                 if (loginUser.getPassword().equals(password.getValue())) {
                     Notification.show(loginUser.getLogin()+" is logged on", Notification.Type.TRAY_NOTIFICATION);
                     clearField(name, password);
-                    // TODO Transition to the user's panel
+
+                    ProjectPanel projectPanel = new ProjectPanel();
+                    projectPanel.setLoginPanel(this);
+                    projectPanel.setUser(loginUser);
+                    getUI().setContent(projectPanel.getLayout());
                 } else
                     Notification.show("The password provided is incorrect", Notification.Type.TRAY_NOTIFICATION);
             }
