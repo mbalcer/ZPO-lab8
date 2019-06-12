@@ -93,9 +93,12 @@ public class ProjectPanel  {
 
         HorizontalLayout btnLayout = new HorizontalLayout();
         Button btnShowSprint = initBtnSprint(project);
-        Button btnDelete = initBtnDelete(project);
-        btnLayout.addComponents(btnShowSprint, btnDelete);
+        btnLayout.addComponent(btnShowSprint);
 
+        if (project.getLeader().equals(user)) {
+            Button btnDelete = initBtnDelete(project, oneProjectLayout);
+            btnLayout.addComponent(btnDelete);
+        }
         oneProjectLayout.addComponent(btnLayout);
 
         oneProjectLayout.addLayoutClickListener(event -> {
@@ -152,7 +155,8 @@ public class ProjectPanel  {
                 vlWindow.addComponent(addUserToProjectLayout);
                 window.setContent(vlWindow);
                 LoginPanel.getCurrent().addWindow(window);
-            }
+            } else
+                Notification.show("You aren't the leader of this project so you can not manage it", Notification.Type.TRAY_NOTIFICATION);
         });
 
         return oneProjectLayout;
@@ -178,7 +182,7 @@ public class ProjectPanel  {
                     Notification.show("Title can't be empty", Notification.Type.ERROR_MESSAGE);
                 else {
                     Project newProject = new Project(0l, titleProject.getValue(), descriptionProject.getValue(), user);
-                    projectService.createProject(newProject);
+                    newProject = projectService.createProject(newProject);
                     Notification.show("The new project has been successfully added");
                     projectLayout.addComponent(initOneProject(newProject));
                     windowAddProject.close();
@@ -201,12 +205,16 @@ public class ProjectPanel  {
         return showSprint;
     }
 
-    private Button initBtnDelete(Project project) {
+    private Button initBtnDelete(Project project, VerticalLayout oneProjectLayout) {
         Button deleteProject = new Button();
         deleteProject.setIcon(VaadinIcons.TRASH);
         deleteProject.setStyleName(ValoTheme.BUTTON_DANGER);
         deleteProject.addClickListener(event -> {
-
+            userInProjectService.deleteAllUserByProject(project);
+            projectService.deleteProject(project.getId());
+            //TODO removing sprints and tasks
+            projectLayout.removeComponent(oneProjectLayout);
+            Notification.show("Project was successfully deleted");
         });
 
         return deleteProject;

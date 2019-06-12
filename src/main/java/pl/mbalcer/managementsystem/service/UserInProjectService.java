@@ -42,4 +42,7 @@ public class UserInProjectService {
         userInProjectRepository.delete(userInProject);
     }
 
+    public Long deleteAllUserByProject(Project project) {
+        return userInProjectRepository.removeByProject(project);
+    }
 }
