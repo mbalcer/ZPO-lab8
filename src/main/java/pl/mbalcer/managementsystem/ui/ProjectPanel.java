@@ -1,25 +1,18 @@
 package pl.mbalcer.managementsystem.ui;
 
-import com.vaadin.annotations.Theme;
 import com.vaadin.icons.VaadinIcons;
-import com.vaadin.server.FontAwesome;
-import com.vaadin.server.FontIcon;
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.User;
 import pl.mbalcer.managementsystem.model.entity.UserInProject;
-import pl.mbalcer.managementsystem.repository.ProjectRepository;
 import pl.mbalcer.managementsystem.service.ProjectService;
 import pl.mbalcer.managementsystem.service.UserInProjectService;
 import pl.mbalcer.managementsystem.service.UserService;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ProjectPanel  {
 
@@ -116,17 +109,7 @@ public class ProjectPanel  {
                     emptyUsers.setValue("No users participating in the project");
                     vlWindow.addComponent(emptyUsers);
                 } else {
-                    userGrid = new Grid<>("List users in project");
-                    userGrid.setItems(userListInProject);
-                    userGrid.addColumn(u-> u.getUser().getLogin()).setCaption("Login");
-                    userGrid.addColumn(u-> u.getUser().getEmail()).setCaption("Email");
-                    userGrid.addColumn(c -> "Delete",
-                            new ButtonRenderer<>(btn -> {
-                                userInProjectService.deleteUserInProject(btn.getItem());
-                                Notification.show("User has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
-                                updateUserGrid(project);
-                            }));
-
+                    initGridUser(project, userListInProject);
                     vlWindow.addComponent(userGrid);
                 }
 
@@ -145,6 +128,11 @@ public class ProjectPanel  {
                     else {
                         userInProjectService.createUserInProject(new UserInProject(0l, addUser, project));
                         Notification.show("User has been added to the project", Notification.Type.TRAY_NOTIFICATION);
+                        if (userListInProject.size()==0) {
+                            vlWindow.removeAllComponents();
+                            initGridUser(project, userListInProject);
+                            vlWindow.addComponents(userGrid, addUserToProjectLayout);
+                        }
                         updateUserGrid(project);
                         emailUser.clear();
                     }
@@ -160,6 +148,19 @@ public class ProjectPanel  {
         });
 
         return oneProjectLayout;
+    }
+
+    private void initGridUser(Project project, List<UserInProject> userListInProject) {
+        userGrid = new Grid<>("List users in project");
+        userGrid.setItems(userListInProject);
+        userGrid.addColumn(u-> u.getUser().getLogin()).setCaption("Login");
+        userGrid.addColumn(u-> u.getUser().getEmail()).setCaption("Email");
+        userGrid.addColumn(c -> "Delete",
+                new ButtonRenderer<>(btn -> {
+                    userInProjectService.deleteUserInProject(btn.getItem());
+                    Notification.show("User has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
+                    updateUserGrid(project);
+                }));
     }
 
     private Button initBtnAddProject() {
