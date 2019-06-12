@@ -1,15 +1,20 @@
 package pl.mbalcer.managementsystem.ui;
 
 import com.vaadin.annotations.Theme;
+import com.vaadin.server.FontAwesome;
+import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.User;
+import pl.mbalcer.managementsystem.model.entity.UserInProject;
 import pl.mbalcer.managementsystem.repository.ProjectRepository;
 import pl.mbalcer.managementsystem.service.ProjectService;
 import pl.mbalcer.managementsystem.service.UserInProjectService;
+import pl.mbalcer.managementsystem.service.UserService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,8 +23,10 @@ public class ProjectPanel  {
 
     private LoginPanel loginPanel;
     private User user;
+    private UserService userService;
     private ProjectService projectService;
     private UserInProjectService userInProjectService;
+    private Grid<UserInProject> userGrid;
 
     public void setLoginPanel(LoginPanel loginPanel) {
         this.loginPanel = loginPanel;
@@ -35,6 +42,10 @@ public class ProjectPanel  {
 
     public void setUserInProjectService(UserInProjectService userInProjectService) {
         this.userInProjectService = userInProjectService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public VerticalLayout getLayout() {
@@ -65,7 +76,56 @@ public class ProjectPanel  {
                     oneProjectLayout.addComponents(mainInformation, descriptionProject);
 
                     oneProjectLayout.addLayoutClickListener(event -> {
-                        Notification.show(project.toString(), Notification.Type.TRAY_NOTIFICATION);
+                        if (project.getLeader().equals(user)) {
+                            Window window = new Window(project.getName());
+                            VerticalLayout vlWindow = new VerticalLayout();
+
+                            List<UserInProject> userListInProject = userInProjectService.getAllUsersByProject(project);
+
+                            if(userListInProject.size() == 0) {
+                                Label emptyUsers = new Label();
+                                emptyUsers.setValue("No users participating in the project");
+                                vlWindow.addComponent(emptyUsers);
+                            } else {
+                                userGrid = new Grid<>("List users in project");
+                                userGrid.setItems(userListInProject);
+                                userGrid.addColumn(u-> u.getUser().getLogin()).setCaption("Login");
+                                userGrid.addColumn(u-> u.getUser().getEmail()).setCaption("Email");
+                                userGrid.addColumn(c -> "Delete",
+                                        new ButtonRenderer<>(btn -> {
+                                            userInProjectService.deleteUserInProject(btn.getItem());
+                                            Notification.show("User has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
+                                            updateUserGrid(project);
+                                        }));
+
+                                vlWindow.addComponent(userGrid);
+                            }
+
+                            HorizontalLayout addUserToProjectLayout = new HorizontalLayout();
+                            Label emailLabel = new Label("Email");
+                            TextField emailUser = new TextField();
+
+                            Button addUserToProject = new Button();
+                            addUserToProject.setIcon(FontAwesome.PLUS);
+                            addUserToProject.setStyleName(ValoTheme.BUTTON_PRIMARY);
+                            addUserToProject.addClickListener(add -> {
+                                User addUser = userService.getUserByEmail(emailUser.getValue());
+                                if (addUser == null)
+                                    Notification.show("There isn't user with this email address", Notification.Type.ERROR_MESSAGE);
+                                else {
+                                    userInProjectService.createUserInProject(new UserInProject(0l, addUser, project));
+                                    Notification.show("User has been added to the project", Notification.Type.TRAY_NOTIFICATION);
+                                    updateUserGrid(project);
+                                    emailUser.clear();
+                                }
+                            });
+
+                            addUserToProjectLayout.addComponents(emailLabel,emailUser, addUserToProject);
+
+                            vlWindow.addComponent(addUserToProjectLayout);
+                            window.setContent(vlWindow);
+                            LoginPanel.getCurrent().addWindow(window);
+                        }
                     });
 
                     projectLayout.addComponent(oneProjectLayout);
@@ -75,4 +135,10 @@ public class ProjectPanel  {
         projectLayout.setComponentAlignment(nameUser, Alignment.MIDDLE_CENTER);
         return projectLayout;
     }
+
+    public void updateUserGrid(Project project) {
+        userGrid.setItems(userInProjectService.getAllUsersByProject(project));
+    }
+
+
 }

@@ -26,6 +26,10 @@ public class UserInProjectService {
                 .collect(Collectors.toList());
     }
 
+    public List<UserInProject> getAllUsersByProject(Project project) {
+        return userInProjectRepository.findAllByProject(project);
+    }
+
     public UserInProject createUserInProject(UserInProject project) {
         return userInProjectRepository.save(project);
     }
@@ -34,8 +38,8 @@ public class UserInProjectService {
         return userInProjectRepository.save(project);
     }
 
-    public void deleteUserInProject(Long id) {
-        userInProjectRepository.deleteById(id);
+    public void deleteUserInProject(UserInProject userInProject) {
+        userInProjectRepository.delete(userInProject);
     }
 
 }

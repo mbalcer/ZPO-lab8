@@ -55,6 +55,7 @@ public class LoginPanel extends UI {
                     projectPanel.setUser(loginUser);
                     projectPanel.setProjectService(projectService);
                     projectPanel.setUserInProjectService(userInProjectService);
+                    projectPanel.setUserService(userService);
                     getUI().setContent(projectPanel.getLayout());
                 } else
                     Notification.show("The password provided is incorrect", Notification.Type.TRAY_NOTIFICATION);
