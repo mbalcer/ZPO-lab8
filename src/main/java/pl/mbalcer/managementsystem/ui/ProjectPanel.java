@@ -51,8 +51,16 @@ public class ProjectPanel  {
         nameUser.setValue("List of Projects for: "+user.getLogin());
         projectLayout.addComponent(nameUser);
 
+        HorizontalLayout mainButtons = new HorizontalLayout();
+        mainButtons.setMargin(true);
+
+        Button backToLogin = new Button();
+        backToLogin.setIcon(VaadinIcons.ARROW_BACKWARD);
+        backToLogin.addClickListener(event -> loginPanel.getUI().setContent(loginPanel.getLoginPanelLayout()));
         Button btnAddProject = initBtnAddProject();
-        projectLayout.addComponent(btnAddProject);
+
+        mainButtons.addComponents(backToLogin, btnAddProject);
+        projectLayout.addComponent(mainButtons);
 
         List<Project> listProjects = projectService.getAllProjectsByLeader(user);
         listProjects.addAll(userInProjectService.getAllProjectsByUser(user));

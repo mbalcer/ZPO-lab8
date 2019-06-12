@@ -1,5 +1,6 @@
 package pl.mbalcer.managementsystem.ui;
 
+import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
@@ -28,6 +29,11 @@ public class LoginPanel extends UI {
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+        VerticalLayout root = getLoginPanelLayout();
+        setContent(root);
+    }
+
+    public VerticalLayout getLoginPanelLayout() {
         VerticalLayout root = new VerticalLayout();
         root.setSizeFull();
 
@@ -103,7 +109,7 @@ public class LoginPanel extends UI {
         mainTabSheet.addTab(formRegister, "Register");
 
         root.addComponent(mainTabSheet);
-        setContent(root);
+        return root;
     }
 
     private void clearField(AbstractTextField... components) {
