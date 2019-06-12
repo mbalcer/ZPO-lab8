@@ -6,6 +6,10 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.mbalcer.managementsystem.model.entity.User;
+import pl.mbalcer.managementsystem.model.entity.UserInProject;
+import pl.mbalcer.managementsystem.repository.ProjectRepository;
+import pl.mbalcer.managementsystem.service.ProjectService;
+import pl.mbalcer.managementsystem.service.UserInProjectService;
 import pl.mbalcer.managementsystem.service.UserService;
 
 import java.util.Arrays;
@@ -15,6 +19,12 @@ public class LoginPanel extends UI {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ProjectService projectService;
+
+    @Autowired
+    private UserInProjectService userInProjectService;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -43,6 +53,8 @@ public class LoginPanel extends UI {
                     ProjectPanel projectPanel = new ProjectPanel();
                     projectPanel.setLoginPanel(this);
                     projectPanel.setUser(loginUser);
+                    projectPanel.setProjectService(projectService);
+                    projectPanel.setUserInProjectService(userInProjectService);
                     getUI().setContent(projectPanel.getLayout());
                 } else
                     Notification.show("The password provided is incorrect", Notification.Type.TRAY_NOTIFICATION);
