@@ -31,8 +31,8 @@ public class SprintService {
         return sprintRepository.save(user);
     }
 
-    public void deleteSprint(Long id) {
-        sprintRepository.deleteById(id);
+    public void deleteSprint(Sprint sprint) {
+        sprintRepository.delete(sprint);
     }
 
 }

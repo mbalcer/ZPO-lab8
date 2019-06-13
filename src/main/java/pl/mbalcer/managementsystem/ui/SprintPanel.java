@@ -3,6 +3,7 @@ package pl.mbalcer.managementsystem.ui;
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
+import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.Sprint;
@@ -123,10 +124,17 @@ public class SprintPanel {
         sprintGrid = new Grid<>();
         List<Sprint> sprintList = allService.getSprintService().getAllSprintByProject(project);
         sprintGrid.setItems(sprintList);
-        sprintGrid.addColumn(Sprint::getId).setCaption("##");
+        sprintGrid.setWidth(40.0f, Sizeable.Unit.PERCENTAGE);
+        sprintGrid.addColumn(Sprint::getId).setCaption("##").setWidth(55.0);
         sprintGrid.addColumn(Sprint::getDateFrom).setCaption("Date from");
         sprintGrid.addColumn(Sprint::getDateTo).setCaption("Date to");
         sprintGrid.addColumn(Sprint::getPlannedStoryPoints).setCaption("Max story points");
+        sprintGrid.addColumn(c -> "Delete",
+                new ButtonRenderer<>(btn -> {
+                    allService.getSprintService().deleteSprint(btn.getItem());
+                    Notification.show("Sprint has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
+                    updateSprintTable();
+                }));
 
         return sprintGrid;
     }
