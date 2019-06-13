@@ -196,7 +196,13 @@ public class ProjectPanel  {
     private Button initBtnSprint(Project project) {
         Button showSprint = new Button("Show sprint for "+project.getName());
         showSprint.addClickListener(event -> {
+            SprintPanel sprintPanel = new SprintPanel();
+            sprintPanel.setAllService(allService);
+            sprintPanel.setLoginPanel(loginPanel);
+            sprintPanel.setProject(project);
+            sprintPanel.setUser(user);
 
+            loginPanel.getUI().setContent(sprintPanel.getLayout());
         });
         return showSprint;
     }
@@ -212,8 +218,6 @@ public class ProjectPanel  {
             projectLayout.removeComponent(oneProjectLayout);
             Notification.show("Project was successfully deleted");
         });
-
         return deleteProject;
     }
-
 }
