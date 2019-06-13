@@ -8,19 +8,14 @@ import com.vaadin.ui.themes.ValoTheme;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.User;
 import pl.mbalcer.managementsystem.model.entity.UserInProject;
-import pl.mbalcer.managementsystem.service.ProjectService;
-import pl.mbalcer.managementsystem.service.UserInProjectService;
-import pl.mbalcer.managementsystem.service.UserService;
-
+import pl.mbalcer.managementsystem.service.AllService;
 import java.util.List;
 
 public class ProjectPanel  {
 
     private LoginPanel loginPanel;
     private User user;
-    private UserService userService;
-    private ProjectService projectService;
-    private UserInProjectService userInProjectService;
+    private AllService allService;
     private Grid<UserInProject> userGrid;
     private VerticalLayout projectLayout;
 
@@ -32,16 +27,8 @@ public class ProjectPanel  {
         this.user = user;
     }
 
-    public void setProjectService(ProjectService projectService) {
-        this.projectService = projectService;
-    }
-
-    public void setUserInProjectService(UserInProjectService userInProjectService) {
-        this.userInProjectService = userInProjectService;
-    }
-
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setAllService(AllService allService) {
+        this.allService = allService;
     }
 
     public VerticalLayout getLayout() {
@@ -62,8 +49,8 @@ public class ProjectPanel  {
         mainButtons.addComponents(backToLogin, btnAddProject);
         projectLayout.addComponent(mainButtons);
 
-        List<Project> listProjects = projectService.getAllProjectsByLeader(user);
-        listProjects.addAll(userInProjectService.getAllProjectsByUser(user));
+        List<Project> listProjects = allService.getProjectService().getAllProjectsByLeader(user);
+        listProjects.addAll(allService.getUserInProjectService().getAllProjectsByUser(user));
         listProjects.stream()
                 .forEach(project -> projectLayout.addComponent(initOneProject(project)));
 
@@ -72,7 +59,7 @@ public class ProjectPanel  {
     }
 
     private void updateUserGrid(Project project) {
-        userGrid.setItems(userInProjectService.getAllUsersByProject(project));
+        userGrid.setItems(allService.getUserInProjectService().getAllUsersByProject(project));
     }
 
     private VerticalLayout initOneProject(Project project) {
@@ -110,7 +97,7 @@ public class ProjectPanel  {
                 window.center();
                 VerticalLayout vlWindow = new VerticalLayout();
 
-                List<UserInProject> userListInProject = userInProjectService.getAllUsersByProject(project);
+                List<UserInProject> userListInProject = allService.getUserInProjectService().getAllUsersByProject(project);
 
                 if(userListInProject.size() == 0) {
                     Label emptyUsers = new Label();
@@ -129,12 +116,12 @@ public class ProjectPanel  {
                 addUserToProject.setIcon(VaadinIcons.PLUS);
                 addUserToProject.setStyleName(ValoTheme.BUTTON_PRIMARY);
                 addUserToProject.addClickListener(add -> {
-                    User addUser = userService.getUserByEmail(emailUser.getValue());
+                    User addUser = allService.getUserService().getUserByEmail(emailUser.getValue());
                     //TODO protection of adding a user if it is already in the project
                     if (addUser == null)
                         Notification.show("There isn't user with this email address", Notification.Type.ERROR_MESSAGE);
                     else {
-                        userInProjectService.createUserInProject(new UserInProject(0l, addUser, project));
+                        allService.getUserInProjectService().createUserInProject(new UserInProject(0l, addUser, project));
                         Notification.show("User has been added to the project", Notification.Type.TRAY_NOTIFICATION);
                         if (userListInProject.size()==0) {
                             vlWindow.removeAllComponents();
@@ -165,7 +152,7 @@ public class ProjectPanel  {
         userGrid.addColumn(u-> u.getUser().getEmail()).setCaption("Email");
         userGrid.addColumn(c -> "Delete",
                 new ButtonRenderer<>(btn -> {
-                    userInProjectService.deleteUserInProject(btn.getItem());
+                    allService.getUserInProjectService().deleteUserInProject(btn.getItem());
                     Notification.show("User has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
                     updateUserGrid(project);
                 }));
@@ -191,7 +178,7 @@ public class ProjectPanel  {
                     Notification.show("Title can't be empty", Notification.Type.ERROR_MESSAGE);
                 else {
                     Project newProject = new Project(0l, titleProject.getValue(), descriptionProject.getValue(), user);
-                    newProject = projectService.createProject(newProject);
+                    newProject = allService.getProjectService().createProject(newProject);
                     Notification.show("The new project has been successfully added");
                     projectLayout.addComponent(initOneProject(newProject));
                     windowAddProject.close();
@@ -219,8 +206,8 @@ public class ProjectPanel  {
         deleteProject.setIcon(VaadinIcons.TRASH);
         deleteProject.setStyleName(ValoTheme.BUTTON_DANGER);
         deleteProject.addClickListener(event -> {
-            userInProjectService.deleteAllUserByProject(project);
-            projectService.deleteProject(project.getId());
+            allService.getUserInProjectService().deleteAllUserByProject(project);
+            allService.getProjectService().deleteProject(project.getId());
             //TODO removing sprints and tasks
             projectLayout.removeComponent(oneProjectLayout);
             Notification.show("Project was successfully deleted");

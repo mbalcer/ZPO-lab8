@@ -1,17 +1,12 @@
 package pl.mbalcer.managementsystem.ui;
 
-import com.vaadin.server.Sizeable;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import pl.mbalcer.managementsystem.model.entity.User;
-import pl.mbalcer.managementsystem.model.entity.UserInProject;
-import pl.mbalcer.managementsystem.repository.ProjectRepository;
-import pl.mbalcer.managementsystem.service.ProjectService;
-import pl.mbalcer.managementsystem.service.UserInProjectService;
-import pl.mbalcer.managementsystem.service.UserService;
+import pl.mbalcer.managementsystem.service.AllService;
 
 import java.util.Arrays;
 
@@ -19,13 +14,7 @@ import java.util.Arrays;
 public class LoginPanel extends UI {
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ProjectService projectService;
-
-    @Autowired
-    private UserInProjectService userInProjectService;
+    private AllService allService;
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
@@ -48,10 +37,10 @@ public class LoginPanel extends UI {
         PasswordField password = new PasswordField("Password");
         Button signIn = new Button("Sign in");
         signIn.addClickListener(event -> {
-            if (userService.getUserByLogin(name.getValue()) == null)
+            if (allService.getUserService().getUserByLogin(name.getValue()) == null)
                 Notification.show("There isn't user with a given login", Notification.Type.TRAY_NOTIFICATION);
             else {
-                User loginUser = userService.getUserByLogin(name.getValue());
+                User loginUser = allService.getUserService().getUserByLogin(name.getValue());
                 if (loginUser.getPassword().equals(password.getValue())) {
                     Notification.show(loginUser.getLogin()+" is logged on", Notification.Type.TRAY_NOTIFICATION);
                     clearField(name, password);
@@ -59,9 +48,7 @@ public class LoginPanel extends UI {
                     ProjectPanel projectPanel = new ProjectPanel();
                     projectPanel.setLoginPanel(this);
                     projectPanel.setUser(loginUser);
-                    projectPanel.setProjectService(projectService);
-                    projectPanel.setUserInProjectService(userInProjectService);
-                    projectPanel.setUserService(userService);
+                    projectPanel.setAllService(allService);
                     getUI().setContent(projectPanel.getLayout());
                 } else
                     Notification.show("The password provided is incorrect", Notification.Type.TRAY_NOTIFICATION);
@@ -89,13 +76,13 @@ public class LoginPanel extends UI {
                 Notification.show("Login must be at least 6 characters long", Notification.Type.TRAY_NOTIFICATION);
             else if(passwordRegister.getValue().length()<6)
                 Notification.show("Password must be at least 6 characters long", Notification.Type.TRAY_NOTIFICATION);
-            else if(userService.getUserByLogin(nameRegister.getValue()) != null)
+            else if(allService.getUserService().getUserByLogin(nameRegister.getValue()) != null)
                 Notification.show("The user with this login already exists", Notification.Type.TRAY_NOTIFICATION);
-            else if(userService.getUserByEmail(email.getValue()) != null)
+            else if(allService.getUserService().getUserByEmail(email.getValue()) != null)
                 Notification.show("The user with this email already exists", Notification.Type.TRAY_NOTIFICATION);
             else {
                 User newUser = new User(0l, nameRegister.getValue(), passwordRegister.getValue(), email.getValue());
-                newUser = userService.createUser(newUser);
+                newUser = allService.getUserService().createUser(newUser);
                 if (newUser != null) {
                     Notification.show("User has been successfully registered", Notification.Type.TRAY_NOTIFICATION);
                     clearField(nameRegister, email, passwordRegister, passwordRegisterRepeat);
