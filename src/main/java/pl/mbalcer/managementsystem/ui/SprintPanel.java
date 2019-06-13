@@ -1,9 +1,7 @@
 package pl.mbalcer.managementsystem.ui;
 
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.icons.VaadinIcons;
+import com.vaadin.ui.*;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.Sprint;
 import pl.mbalcer.managementsystem.model.entity.User;
@@ -17,6 +15,7 @@ public class SprintPanel {
     private AllService allService;
     private Project project;
     private VerticalLayout sprintLayout;
+    private ProjectPanel projectPanel;
 
     public void setLoginPanel(LoginPanel loginPanel) {
         this.loginPanel = loginPanel;
@@ -34,18 +33,42 @@ public class SprintPanel {
         this.project = project;
     }
 
+    public void setProjectPanel(ProjectPanel projectPanel) {
+        this.projectPanel = projectPanel;
+    }
+
     public VerticalLayout getLayout() {
         sprintLayout = new VerticalLayout();
 
         Label titleLabel = new Label();
         titleLabel.setValue("List of sprints for '"+project.getName()+"' project");
 
+        HorizontalLayout mainButtons = new HorizontalLayout();
+        Button btnBack = initBtnBack();
+        Button btnAddSprint = initBtnAddSprint();
+        mainButtons.addComponents(btnBack, btnAddSprint);
+
         Grid<Sprint> sprintGrid = initSprintTable();
 
-        sprintLayout.addComponents(titleLabel, sprintGrid);
+        sprintLayout.addComponents(titleLabel, mainButtons, sprintGrid);
         sprintLayout.setComponentAlignment(titleLabel, Alignment.TOP_CENTER);
+        sprintLayout.setComponentAlignment(mainButtons, Alignment.MIDDLE_CENTER);
         sprintLayout.setComponentAlignment(sprintGrid, Alignment.MIDDLE_CENTER);
         return sprintLayout;
+    }
+
+    private Button initBtnAddSprint() {
+        Button btnAddSprint = new Button();
+
+        return btnAddSprint;
+    }
+
+    private Button initBtnBack() {
+        Button btnBack = new Button();
+        btnBack.setIcon(VaadinIcons.ARROW_BACKWARD);
+        btnBack.addClickListener(event -> loginPanel.getUI().setContent(projectPanel.getLayout()));
+
+        return btnBack;
     }
 
     private Grid<Sprint> initSprintTable() {

@@ -201,6 +201,7 @@ public class ProjectPanel  {
             sprintPanel.setLoginPanel(loginPanel);
             sprintPanel.setProject(project);
             sprintPanel.setUser(user);
+            sprintPanel.setProjectPanel(this);
 
             loginPanel.getUI().setContent(sprintPanel.getLayout());
         });
