@@ -2,6 +2,7 @@ package pl.mbalcer.managementsystem.ui;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Sizeable;
+import com.vaadin.shared.ui.colorpicker.Color;
 import com.vaadin.shared.ui.grid.DropMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.GridDragSource;
@@ -68,12 +69,36 @@ public class TaskPanel {
         ComboBox<Sprint> sprintComboBox = getSprintComboBox();
 
         HorizontalLayout taskTables = initTaskTablesView();
+        Label infoStoryPoints = initLabelStoryPoints();
 
-        taskLayout.addComponents(projectName, mainButtons, sprintComboBox, taskTables);
+        taskLayout.addComponents(projectName, mainButtons, sprintComboBox, taskTables, infoStoryPoints);
         taskLayout.setComponentAlignment(projectName, Alignment.TOP_CENTER);
         taskLayout.setComponentAlignment(mainButtons, Alignment.TOP_CENTER);
         taskLayout.setComponentAlignment(sprintComboBox, Alignment.TOP_CENTER);
+        taskLayout.setComponentAlignment(infoStoryPoints, Alignment.MIDDLE_CENTER);
         return taskLayout;
+    }
+
+    private Label initLabelStoryPoints() {
+        Label infoStoryPoints = new Label();
+        Integer sumStoryPoints = sumStoryPoints();
+        infoStoryPoints.setCaptionAsHtml(true);
+        String formatPoints;
+        if (sumStoryPoints>sprint.getPlannedStoryPoints())
+            formatPoints = "<span style='color: red; font-size: 18px;'>";
+        else
+            formatPoints = "<span style='color: green; font-size: 18px;'>";
+        infoStoryPoints.setCaption("Story points in this sprint: " + formatPoints + sumStoryPoints + "</span> / " + sprint.getPlannedStoryPoints());
+
+        return infoStoryPoints;
+    }
+
+    private Integer sumStoryPoints() {
+        return allService.getTaskService()
+                    .getAllTaskBySprint(sprint)
+                    .stream()
+                    .mapToInt(Task::getStoryPoints)
+                    .sum();
     }
 
     private HorizontalLayout initTaskTablesView() {
@@ -86,8 +111,8 @@ public class TaskPanel {
                     List<Task> taskList = allService.getTaskService().getAllTaskBySprintAndProgress(sprint, progress);
                     taskGrid.setItems(taskList);
 
-                    taskGrid.addColumn(Task::getName).setCaption("Name");
-                    taskGrid.addColumn(t -> t.getUser().getLogin()).setCaption("User");
+                    taskGrid.addColumn(Task::getName).setCaption("Name").setWidth(160.0);
+                    taskGrid.addColumn(t -> t.getUser().getLogin()).setCaption("User").setWidth(130.0);
 
                     taskGrid.addItemClickListener(event -> initWindowEditTask(event.getItem(), taskGrid, progress));
 
