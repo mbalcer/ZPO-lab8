@@ -27,4 +27,11 @@ public class Sprint {
 
     @ManyToOne
     private Project project;
+
+    @Override
+    public String toString() {
+        return "Sprint: " + id +
+                ", dateFrom=" + dateFrom +
+                ", dateTo=" + dateTo;
+    }
 }

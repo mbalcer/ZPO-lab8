@@ -1,7 +1,7 @@
 package pl.mbalcer.managementsystem.ui;
 
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.server.Sizeable;
+import com.vaadin.ui.*;
 import lombok.Setter;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.Sprint;
@@ -43,10 +43,30 @@ public class TaskPanel {
     public VerticalLayout getLayout() {
         VerticalLayout taskLayout = new VerticalLayout();
 
-        Label name = new Label();
-        name.setValue(sprint.toString());
+        Label projectName = new Label();
+        projectName.setValue("Project: "+project.getName());
 
-        taskLayout.addComponent(name);
+        ComboBox<Sprint> sprintComboBox = getSprintComboBox();
+
+        taskLayout.addComponents(projectName, sprintComboBox);
+        taskLayout.setComponentAlignment(projectName, Alignment.TOP_CENTER);
+        taskLayout.setComponentAlignment(sprintComboBox, Alignment.TOP_CENTER);
         return taskLayout;
     }
+
+    private ComboBox<Sprint> getSprintComboBox() {
+        ComboBox<Sprint> sprintComboBox = new ComboBox<>("Sprint");
+        sprintComboBox.setItems(allService.getSprintService().getAllSprintByProject(project));
+        sprintComboBox.setEmptySelectionAllowed(false);
+        sprintComboBox.setItemCaptionGenerator(Sprint::toString);
+        sprintComboBox.setValue(sprint);
+        sprintComboBox.setWidth(30.0f, Sizeable.Unit.PERCENTAGE);
+        sprintComboBox.addValueChangeListener(event -> {
+            this.sprint = event.getValue();
+            loginPanel.getUI().setContent(getLayout());
+        });
+        return sprintComboBox;
+    }
+
+
 }
