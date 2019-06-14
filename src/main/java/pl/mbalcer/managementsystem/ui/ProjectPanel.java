@@ -5,31 +5,21 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.Setter;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.User;
 import pl.mbalcer.managementsystem.model.entity.UserInProject;
 import pl.mbalcer.managementsystem.service.AllService;
 import java.util.List;
 
+@Setter
 public class ProjectPanel  {
-
     private LoginPanel loginPanel;
     private User user;
     private AllService allService;
+
     private Grid<UserInProject> userGrid;
     private VerticalLayout projectLayout;
-
-    public void setLoginPanel(LoginPanel loginPanel) {
-        this.loginPanel = loginPanel;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setAllService(AllService allService) {
-        this.allService = allService;
-    }
 
     public VerticalLayout getLayout() {
         projectLayout = new VerticalLayout();

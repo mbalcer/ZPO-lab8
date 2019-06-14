@@ -5,6 +5,7 @@ import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
+import lombok.Setter;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.Sprint;
 import pl.mbalcer.managementsystem.model.entity.User;
@@ -13,6 +14,7 @@ import pl.mbalcer.managementsystem.service.AllService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Setter
 public class SprintPanel {
     private LoginPanel loginPanel;
     private User user;
@@ -22,26 +24,6 @@ public class SprintPanel {
 
     private VerticalLayout sprintLayout;
     private Grid<Sprint> sprintGrid;
-
-    public void setLoginPanel(LoginPanel loginPanel) {
-        this.loginPanel = loginPanel;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setAllService(AllService allService) {
-        this.allService = allService;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public void setProjectPanel(ProjectPanel projectPanel) {
-        this.projectPanel = projectPanel;
-    }
 
     public VerticalLayout getLayout() {
         sprintLayout = new VerticalLayout();
@@ -153,7 +135,7 @@ public class SprintPanel {
                         updateSprintTable();
                     }));
         }
-        
+
         return sprintGrid;
     }
 

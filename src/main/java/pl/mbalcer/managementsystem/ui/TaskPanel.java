@@ -2,12 +2,10 @@ package pl.mbalcer.managementsystem.ui;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Sizeable;
-import com.vaadin.shared.ui.colorpicker.Color;
 import com.vaadin.shared.ui.grid.DropMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.GridDragSource;
 import com.vaadin.ui.components.grid.GridDropTarget;
-import com.vaadin.ui.components.grid.GridRowDragger;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.Setter;
 import pl.mbalcer.managementsystem.model.entity.*;
@@ -16,9 +14,9 @@ import pl.mbalcer.managementsystem.service.AllService;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+@Setter
 public class TaskPanel {
     private LoginPanel loginPanel;
     private User user;
@@ -30,30 +28,6 @@ public class TaskPanel {
     private Task acctualTask;
     private FormLayout formWindowTask;
     private Grid<Task> backlogGrid;
-
-    public void setLoginPanel(LoginPanel loginPanel) {
-        this.loginPanel = loginPanel;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public void setAllService(AllService allService) {
-        this.allService = allService;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public void setSprint(Sprint sprint) {
-        this.sprint = sprint;
-    }
-
-    public void setSprintPanel(SprintPanel sprintPanel) {
-        this.sprintPanel = sprintPanel;
-    }
 
     public VerticalLayout getLayout() {
         VerticalLayout taskLayout = new VerticalLayout();
