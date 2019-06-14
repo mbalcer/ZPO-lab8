@@ -28,6 +28,7 @@ public class TaskPanel {
     private Task acctualTask;
     private FormLayout formWindowTask;
     private Grid<Task> backlogGrid;
+    private Label infoStoryPoints;
 
     public VerticalLayout getLayout() {
         VerticalLayout taskLayout = new VerticalLayout();
@@ -43,7 +44,8 @@ public class TaskPanel {
         ComboBox<Sprint> sprintComboBox = getSprintComboBox();
 
         HorizontalLayout taskTables = initTaskTablesView();
-        Label infoStoryPoints = initLabelStoryPoints();
+        infoStoryPoints = new Label();
+        initLabelStoryPoints();
 
         taskLayout.addComponents(projectName, mainButtons, sprintComboBox, taskTables, infoStoryPoints);
         taskLayout.setComponentAlignment(projectName, Alignment.TOP_CENTER);
@@ -53,8 +55,7 @@ public class TaskPanel {
         return taskLayout;
     }
 
-    private Label initLabelStoryPoints() {
-        Label infoStoryPoints = new Label();
+    private void initLabelStoryPoints() {
         Integer sumStoryPoints = sumStoryPoints();
         infoStoryPoints.setCaptionAsHtml(true);
         String formatPoints;
@@ -63,13 +64,11 @@ public class TaskPanel {
         else
             formatPoints = "<span style='color: green; font-size: 18px;'>";
         infoStoryPoints.setCaption("Story points in this sprint: " + formatPoints + sumStoryPoints + "</span> / " + sprint.getPlannedStoryPoints());
-
-        return infoStoryPoints;
     }
 
     private Integer sumStoryPoints() {
         return allService.getTaskService()
-                    .getAllTaskBySprint(sprint)
+                    .getAllTaskBySprintAndProgress(sprint, Progress.DONE)
                     .stream()
                     .mapToInt(Task::getStoryPoints)
                     .sum();
@@ -103,6 +102,7 @@ public class TaskPanel {
                         allService.getTaskService().updateTask(acctualTask);
                         taskList.add(acctualTask);
                         taskGrid.setItems(taskList);
+                        initLabelStoryPoints();
                     });
 
                     taskTables.addComponent(taskGrid);
@@ -166,6 +166,7 @@ public class TaskPanel {
                     allService.getTaskService().updateTask(item);
                     Notification.show("Task editing was successful", Notification.Type.TRAY_NOTIFICATION);
                     acctualTaskGrid.setItems(allService.getTaskService().getAllTaskBySprintAndProgress(sprint, acctualProgress));
+                    initLabelStoryPoints();
                     windowTask.close();
                 } catch (NumberFormatException e) {
                     Notification.show("Enter the correct number", Notification.Type.ERROR_MESSAGE);
@@ -226,6 +227,7 @@ public class TaskPanel {
                 Task task = new Task(0l, name.getValue(), description.getValue(), Integer.parseInt(storyPoints.getValue()), Progress.BACKLOG, sprint, userNewTask);
                 allService.getTaskService().createTask(task);
                 backlogGrid.setItems(allService.getTaskService().getAllTaskBySprintAndProgress(sprint, Progress.BACKLOG));
+                initLabelStoryPoints();
                 Notification.show("Task adding was successful", Notification.Type.TRAY_NOTIFICATION);
                 windowTask.close();
             } catch (NumberFormatException e) {
