@@ -51,8 +51,12 @@ public class SprintPanel {
 
         HorizontalLayout mainButtons = new HorizontalLayout();
         Button btnBack = initBtnBack();
-        Button btnAddSprint = initBtnAddSprint();
-        mainButtons.addComponents(btnBack, btnAddSprint);
+        mainButtons.addComponent(btnBack);
+
+        if (project.getLeader().equals(user)) {
+            Button btnAddSprint = initBtnAddSprint();
+            mainButtons.addComponent(btnAddSprint);
+        }
 
         Grid<Sprint> sprintGrid = initSprintTable();
 
@@ -124,18 +128,32 @@ public class SprintPanel {
         sprintGrid = new Grid<>();
         List<Sprint> sprintList = allService.getSprintService().getAllSprintByProject(project);
         sprintGrid.setItems(sprintList);
-        sprintGrid.setWidth(40.0f, Sizeable.Unit.PERCENTAGE);
+        sprintGrid.setWidth(50.0f, Sizeable.Unit.PERCENTAGE);
         sprintGrid.addColumn(Sprint::getId).setCaption("##").setWidth(55.0);
         sprintGrid.addColumn(Sprint::getDateFrom).setCaption("Date from");
         sprintGrid.addColumn(Sprint::getDateTo).setCaption("Date to");
         sprintGrid.addColumn(Sprint::getPlannedStoryPoints).setCaption("Max story points");
-        sprintGrid.addColumn(c -> "Delete",
+        sprintGrid.addColumn(c -> "Show task",
                 new ButtonRenderer<>(btn -> {
-                    allService.getSprintService().deleteSprint(btn.getItem());
-                    Notification.show("Sprint has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
-                    updateSprintTable();
-                }));
+                    TaskPanel taskPanel = new TaskPanel();
+                    taskPanel.setAllService(allService);
+                    taskPanel.setLoginPanel(loginPanel);
+                    taskPanel.setProject(project);
+                    taskPanel.setUser(user);
+                    taskPanel.setSprintPanel(this);
+                    taskPanel.setSprint(btn.getItem());
 
+                    loginPanel.getUI().setContent(taskPanel.getLayout());
+                }));
+        if (project.getLeader().equals(user)) {
+            sprintGrid.addColumn(c -> "Delete",
+                    new ButtonRenderer<>(btn -> {
+                        allService.getSprintService().deleteSprint(btn.getItem());
+                        Notification.show("Sprint has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
+                        updateSprintTable();
+                    }));
+        }
+        
         return sprintGrid;
     }
 
