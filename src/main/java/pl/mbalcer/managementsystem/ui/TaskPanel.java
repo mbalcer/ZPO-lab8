@@ -2,12 +2,22 @@ package pl.mbalcer.managementsystem.ui;
 
 import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Sizeable;
+import com.vaadin.shared.ui.grid.DropMode;
 import com.vaadin.ui.*;
+import com.vaadin.ui.components.grid.GridDragSource;
+import com.vaadin.ui.components.grid.GridDropTarget;
+import com.vaadin.ui.components.grid.GridRowDragger;
 import lombok.Setter;
 import pl.mbalcer.managementsystem.model.entity.Project;
 import pl.mbalcer.managementsystem.model.entity.Sprint;
+import pl.mbalcer.managementsystem.model.entity.Task;
 import pl.mbalcer.managementsystem.model.entity.User;
+import pl.mbalcer.managementsystem.model.enumType.Progress;
 import pl.mbalcer.managementsystem.service.AllService;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TaskPanel {
     private LoginPanel loginPanel;
@@ -16,6 +26,8 @@ public class TaskPanel {
     private Project project;
     private Sprint sprint;
     private SprintPanel sprintPanel;
+
+    private Task acctualTask;
 
     public void setLoginPanel(LoginPanel loginPanel) {
         this.loginPanel = loginPanel;
@@ -54,12 +66,49 @@ public class TaskPanel {
 
         ComboBox<Sprint> sprintComboBox = getSprintComboBox();
 
-        taskLayout.addComponents(projectName, mainButtons, sprintComboBox);
+        HorizontalLayout taskTables = initTaskTablesView();
+
+        taskLayout.addComponents(projectName, mainButtons, sprintComboBox, taskTables);
         taskLayout.setComponentAlignment(projectName, Alignment.TOP_CENTER);
         taskLayout.setComponentAlignment(mainButtons, Alignment.TOP_CENTER);
         taskLayout.setComponentAlignment(sprintComboBox, Alignment.TOP_CENTER);
         return taskLayout;
     }
+
+    private HorizontalLayout initTaskTablesView() {
+        HorizontalLayout taskTables = new HorizontalLayout();
+        List<Progress> progressList = Arrays.asList(Progress.BACKLOG, Progress.TO_DO, Progress.IN_PROGRESS, Progress.QA, Progress.DONE);
+        progressList.stream()
+                .forEach(progress -> {
+                    Grid<Task> taskGrid = new Grid<>(progress.name());
+                    taskGrid.setWidth(290.0f, Sizeable.Unit.PIXELS);
+                    List<Task> taskList = allService.getTaskService().getAllTaskBySprintAndProgress(sprint, progress);
+                    taskGrid.setItems(taskList);
+
+                    taskGrid.addColumn(Task::getName).setCaption("Name");
+                    taskGrid.addColumn(t -> t.getUser().getLogin()).setCaption("User");
+
+                    GridDragSource<Task> source = new GridDragSource<>(taskGrid);
+                    source.addGridDragStartListener(e -> {
+                       acctualTask = e.getDraggedItems().iterator().next();
+                       taskList.remove(acctualTask);
+                       taskGrid.setItems(taskList);
+                    });
+
+                    GridDropTarget<Task> target = new GridDropTarget<>(taskGrid, DropMode.ON_TOP_OR_BETWEEN);
+                    target.addGridDropListener(e -> {
+                        acctualTask.setProgress(progress);
+                        allService.getTaskService().updateTask(acctualTask);
+                        taskList.add(acctualTask);
+                        taskGrid.setItems(taskList);
+                    });
+
+                    taskTables.addComponent(taskGrid);
+                });
+
+        return taskTables;
+    }
+
 
     private Button initBtnAddTask() {
         Button btnAdd = new Button("Add new task");
