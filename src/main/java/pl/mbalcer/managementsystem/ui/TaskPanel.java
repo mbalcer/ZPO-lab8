@@ -27,6 +27,7 @@ public class TaskPanel {
     private SprintPanel sprintPanel;
 
     private Task acctualTask;
+    private FormLayout formWindowTask;
 
     public void setLoginPanel(LoginPanel loginPanel) {
         this.loginPanel = loginPanel;
@@ -87,7 +88,7 @@ public class TaskPanel {
                     taskGrid.addColumn(Task::getName).setCaption("Name");
                     taskGrid.addColumn(t -> t.getUser().getLogin()).setCaption("User");
 
-                    taskGrid.addItemClickListener(event -> initWindowTask(event.getItem()));
+                    taskGrid.addItemClickListener(event -> initWindowEditTask(event.getItem()));
 
                     GridDragSource<Task> source = new GridDragSource<>(taskGrid);
                     source.addGridDragStartListener(e -> {
@@ -110,17 +111,25 @@ public class TaskPanel {
         return taskTables;
     }
 
-    private void initWindowTask(Task item) {
-        Window windowTask = new Window();
+    private Window initWindow() {
+        Window windowTask = new Window("Add/Edit task");
         windowTask.setWidth(400.0f, Sizeable.Unit.PIXELS);
         windowTask.setModal(true);
         windowTask.setResizable(false);
         windowTask.center();
         windowTask.setDraggable(true);
 
-        FormLayout form = new FormLayout();
-        form.setMargin(true);
+        formWindowTask = new FormLayout();
+        formWindowTask.setMargin(true);
 
+        windowTask.setContent(formWindowTask);
+        loginPanel.getUI().addWindow(windowTask);
+
+        return windowTask;
+    }
+
+    private void initWindowEditTask(Task item) {
+        Window windowTask = initWindow();
         TextField name = new TextField("Name");
         name.setEnabled(false);
         name.setValue(item.getName());
@@ -139,21 +148,10 @@ public class TaskPanel {
         progress.setEnabled(false);
         progress.setValue(item.getProgress().name());
 
-        form.addComponents(name, description, storyPoints, progress);
+        formWindowTask.addComponents(name, description, storyPoints, progress);
 
         if (project.getLeader().equals(user)) {
-            ComboBox<User> userComboBox = new ComboBox<>("User");
-
-            List<User> userList = allService.getUserInProjectService()
-                    .getAllUsersByProject(project)
-                    .stream()
-                    .map(UserInProject::getUser)
-                    .collect(Collectors.toList());
-            userList.add(0, project.getLeader());
-
-            userComboBox.setItems(userList);
-            userComboBox.setItemCaptionGenerator(User::getLogin);
-            userComboBox.setEmptySelectionAllowed(false);
+            ComboBox<User> userComboBox = initUserComboBox();
             userComboBox.setValue(item.getUser());
 
             Button btnUpdate = new Button("Update");
@@ -171,17 +169,68 @@ public class TaskPanel {
                 }
             });
 
-            form.addComponents(userComboBox, btnUpdate);
+            formWindowTask.addComponents(userComboBox, btnUpdate);
         }
-        windowTask.setContent(form);
-        loginPanel.getUI().addWindow(windowTask);
+    }
+
+    private ComboBox<User> initUserComboBox() {
+        ComboBox<User> userComboBox = new ComboBox<>("User");
+
+        List<User> userList = allService.getUserInProjectService()
+                .getAllUsersByProject(project)
+                .stream()
+                .map(UserInProject::getUser)
+                .collect(Collectors.toList());
+        userList.add(0, project.getLeader());
+
+        userComboBox.setItems(userList);
+        userComboBox.setItemCaptionGenerator(User::getLogin);
+        userComboBox.setEmptySelectionAllowed(false);
+        return userComboBox;
     }
 
 
     private Button initBtnAddTask() {
         Button btnAdd = new Button("Add new task");
-
+        btnAdd.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        btnAdd.addClickListener(event -> initWindowAddTask());
         return btnAdd;
+    }
+
+    private void initWindowAddTask() {
+        Window windowTask = initWindow();
+
+        TextField name = new TextField("Name");
+        TextArea description = new TextArea("Description");
+        TextField storyPoints = new TextField("Story Points");
+        formWindowTask.addComponents(name, description, storyPoints);
+
+        ComboBox<User> userComboBox = initUserComboBox();
+        if (project.getLeader().equals(user))
+            formWindowTask.addComponent(userComboBox);
+
+        Button btnAdd = new Button();
+        btnAdd.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        btnAdd.setIcon(VaadinIcons.PLUS);
+        btnAdd.addClickListener(event -> {
+            try {
+                if (name.getValue().isEmpty())
+                    Notification.show("", Notification.Type.ERROR_MESSAGE);
+
+                User userNewTask = user;
+                if (project.getLeader().equals(user))
+                    userNewTask = userComboBox.getValue();
+                Task task = new Task(0l, name.getValue(), description.getValue(), Integer.parseInt(storyPoints.getValue()), Progress.BACKLOG, sprint, userNewTask);
+                allService.getTaskService().createTask(task);
+
+                Notification.show("Task adding was successful", Notification.Type.TRAY_NOTIFICATION);
+                windowTask.close();
+            } catch (NumberFormatException e) {
+                Notification.show("Enter the correct number", Notification.Type.ERROR_MESSAGE);
+            }
+        });
+
+        formWindowTask.addComponent(btnAdd);
     }
 
     private Button initBtnBack() {
