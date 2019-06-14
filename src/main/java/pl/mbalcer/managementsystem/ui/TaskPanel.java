@@ -7,17 +7,16 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.components.grid.GridDragSource;
 import com.vaadin.ui.components.grid.GridDropTarget;
 import com.vaadin.ui.components.grid.GridRowDragger;
+import com.vaadin.ui.themes.ValoTheme;
 import lombok.Setter;
-import pl.mbalcer.managementsystem.model.entity.Project;
-import pl.mbalcer.managementsystem.model.entity.Sprint;
-import pl.mbalcer.managementsystem.model.entity.Task;
-import pl.mbalcer.managementsystem.model.entity.User;
+import pl.mbalcer.managementsystem.model.entity.*;
 import pl.mbalcer.managementsystem.model.enumType.Progress;
 import pl.mbalcer.managementsystem.service.AllService;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class TaskPanel {
     private LoginPanel loginPanel;
@@ -88,6 +87,8 @@ public class TaskPanel {
                     taskGrid.addColumn(Task::getName).setCaption("Name");
                     taskGrid.addColumn(t -> t.getUser().getLogin()).setCaption("User");
 
+                    taskGrid.addItemClickListener(event -> initWindowTask(event.getItem()));
+
                     GridDragSource<Task> source = new GridDragSource<>(taskGrid);
                     source.addGridDragStartListener(e -> {
                        acctualTask = e.getDraggedItems().iterator().next();
@@ -107,6 +108,73 @@ public class TaskPanel {
                 });
 
         return taskTables;
+    }
+
+    private void initWindowTask(Task item) {
+        Window windowTask = new Window();
+        windowTask.setWidth(400.0f, Sizeable.Unit.PIXELS);
+        windowTask.setModal(true);
+        windowTask.setResizable(false);
+        windowTask.center();
+        windowTask.setDraggable(true);
+
+        FormLayout form = new FormLayout();
+        form.setMargin(true);
+
+        TextField name = new TextField("Name");
+        name.setEnabled(false);
+        name.setValue(item.getName());
+
+        TextArea description = new TextArea("Description");
+        if (!project.getLeader().equals(user))
+            description.setEnabled(false);
+        description.setValue(item.getDescription());
+
+        TextField storyPoints = new TextField("Story points");
+        if (!project.getLeader().equals(user))
+            storyPoints.setEnabled(false);
+        storyPoints.setValue(String.valueOf(item.getStoryPoints()));
+
+        TextField progress = new TextField("Progress");
+        progress.setEnabled(false);
+        progress.setValue(item.getProgress().name());
+
+        form.addComponents(name, description, storyPoints, progress);
+
+        if (project.getLeader().equals(user)) {
+            ComboBox<User> userComboBox = new ComboBox<>("User");
+
+            List<User> userList = allService.getUserInProjectService()
+                    .getAllUsersByProject(project)
+                    .stream()
+                    .map(UserInProject::getUser)
+                    .collect(Collectors.toList());
+            userList.add(0, project.getLeader());
+
+            userComboBox.setItems(userList);
+            userComboBox.setItemCaptionGenerator(User::getLogin);
+            userComboBox.setEmptySelectionAllowed(false);
+            userComboBox.setValue(item.getUser());
+
+            Button btnUpdate = new Button("Update");
+            btnUpdate.setStyleName(ValoTheme.BUTTON_PRIMARY);
+            btnUpdate.addClickListener(event -> {
+                try {
+                    item.setUser(userComboBox.getValue());
+                    item.setDescription(description.getValue());
+                    item.setStoryPoints(Integer.valueOf(storyPoints.getValue()));
+                    allService.getTaskService().updateTask(item);
+                    Notification.show("Task editing was successful", Notification.Type.TRAY_NOTIFICATION);
+                    windowTask.close();
+                } catch (NumberFormatException e) {
+                    Notification.show("Enter the correct number", Notification.Type.ERROR_MESSAGE);
+                }
+            });
+
+            form.addComponents(userComboBox, btnUpdate);
+        }
+        windowTask.setContent(form);
+        loginPanel.getUI().addWindow(windowTask);
     }
 
 
@@ -136,6 +204,4 @@ public class TaskPanel {
         });
         return sprintComboBox;
     }
-
-
 }
