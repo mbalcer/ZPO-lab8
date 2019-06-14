@@ -28,6 +28,7 @@ public class TaskPanel {
 
     private Task acctualTask;
     private FormLayout formWindowTask;
+    private Grid<Task> backlogGrid;
 
     public void setLoginPanel(LoginPanel loginPanel) {
         this.loginPanel = loginPanel;
@@ -88,7 +89,7 @@ public class TaskPanel {
                     taskGrid.addColumn(Task::getName).setCaption("Name");
                     taskGrid.addColumn(t -> t.getUser().getLogin()).setCaption("User");
 
-                    taskGrid.addItemClickListener(event -> initWindowEditTask(event.getItem()));
+                    taskGrid.addItemClickListener(event -> initWindowEditTask(event.getItem(), taskGrid, progress));
 
                     GridDragSource<Task> source = new GridDragSource<>(taskGrid);
                     source.addGridDragStartListener(e -> {
@@ -106,6 +107,8 @@ public class TaskPanel {
                     });
 
                     taskTables.addComponent(taskGrid);
+                    if (progress.equals(Progress.BACKLOG))
+                        backlogGrid = taskGrid;
                 });
 
         return taskTables;
@@ -128,7 +131,7 @@ public class TaskPanel {
         return windowTask;
     }
 
-    private void initWindowEditTask(Task item) {
+    private void initWindowEditTask(Task item, Grid<Task> acctualTaskGrid, Progress acctualProgress) {
         Window windowTask = initWindow();
         TextField name = new TextField("Name");
         name.setEnabled(false);
@@ -163,6 +166,7 @@ public class TaskPanel {
                     item.setStoryPoints(Integer.valueOf(storyPoints.getValue()));
                     allService.getTaskService().updateTask(item);
                     Notification.show("Task editing was successful", Notification.Type.TRAY_NOTIFICATION);
+                    acctualTaskGrid.setItems(allService.getTaskService().getAllTaskBySprintAndProgress(sprint, acctualProgress));
                     windowTask.close();
                 } catch (NumberFormatException e) {
                     Notification.show("Enter the correct number", Notification.Type.ERROR_MESSAGE);
@@ -222,7 +226,7 @@ public class TaskPanel {
                     userNewTask = userComboBox.getValue();
                 Task task = new Task(0l, name.getValue(), description.getValue(), Integer.parseInt(storyPoints.getValue()), Progress.BACKLOG, sprint, userNewTask);
                 allService.getTaskService().createTask(task);
-
+                backlogGrid.setItems(allService.getTaskService().getAllTaskBySprintAndProgress(sprint, Progress.BACKLOG));
                 Notification.show("Task adding was successful", Notification.Type.TRAY_NOTIFICATION);
                 windowTask.close();
             } catch (NumberFormatException e) {
