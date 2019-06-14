@@ -1,5 +1,6 @@
 package pl.mbalcer.managementsystem.ui;
 
+import com.vaadin.icons.VaadinIcons;
 import com.vaadin.server.Sizeable;
 import com.vaadin.ui.*;
 import lombok.Setter;
@@ -46,12 +47,31 @@ public class TaskPanel {
         Label projectName = new Label();
         projectName.setValue("Project: "+project.getName());
 
+        HorizontalLayout mainButtons = new HorizontalLayout();
+        Button btnBack = initBtnBack();
+        Button btnAddTask = initBtnAddTask();
+        mainButtons.addComponents(btnBack, btnAddTask);
+
         ComboBox<Sprint> sprintComboBox = getSprintComboBox();
 
-        taskLayout.addComponents(projectName, sprintComboBox);
+        taskLayout.addComponents(projectName, mainButtons, sprintComboBox);
         taskLayout.setComponentAlignment(projectName, Alignment.TOP_CENTER);
+        taskLayout.setComponentAlignment(mainButtons, Alignment.TOP_CENTER);
         taskLayout.setComponentAlignment(sprintComboBox, Alignment.TOP_CENTER);
         return taskLayout;
+    }
+
+    private Button initBtnAddTask() {
+        Button btnAdd = new Button("Add new task");
+
+        return btnAdd;
+    }
+
+    private Button initBtnBack() {
+        Button btnBack = new Button();
+        btnBack.setIcon(VaadinIcons.ARROW_BACKWARD);
+        btnBack.addClickListener(event -> loginPanel.getUI().setContent(sprintPanel.getLayout()));
+        return btnBack;
     }
 
     private ComboBox<Sprint> getSprintComboBox() {
