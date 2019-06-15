@@ -9,6 +9,8 @@ import lombok.Setter;
 import pl.mbalcer.managementsystem.model.entity.*;
 import pl.mbalcer.managementsystem.service.AllService;
 import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Setter
 public class ProjectPanel  {
@@ -105,9 +107,10 @@ public class ProjectPanel  {
                 addUserToProject.setStyleName(ValoTheme.BUTTON_PRIMARY);
                 addUserToProject.addClickListener(add -> {
                     User addUser = allService.getUserService().getUserByEmail(emailUser.getValue());
-                    //TODO protection of adding a user if it is already in the project
                     if (addUser == null)
                         Notification.show("There isn't user with this email address", Notification.Type.ERROR_MESSAGE);
+                    else if (!(userListInProject.stream().filter(u -> u.getUser().equals(addUser)).collect(Collectors.toList()).isEmpty()))
+                        Notification.show("This user is already part of this project", Notification.Type.ERROR_MESSAGE);
                     else {
                         allService.getUserInProjectService().createUserInProject(new UserInProject(0l, addUser, project));
                         Notification.show("User has been added to the project", Notification.Type.TRAY_NOTIFICATION);
