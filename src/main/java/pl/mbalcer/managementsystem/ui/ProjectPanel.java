@@ -6,9 +6,7 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.Setter;
-import pl.mbalcer.managementsystem.model.entity.Project;
-import pl.mbalcer.managementsystem.model.entity.User;
-import pl.mbalcer.managementsystem.model.entity.UserInProject;
+import pl.mbalcer.managementsystem.model.entity.*;
 import pl.mbalcer.managementsystem.service.AllService;
 import java.util.List;
 
@@ -203,12 +201,23 @@ public class ProjectPanel  {
         deleteProject.setIcon(VaadinIcons.TRASH);
         deleteProject.setStyleName(ValoTheme.BUTTON_DANGER);
         deleteProject.addClickListener(event -> {
+            allService.getSprintService()
+                    .getAllSprintByProject(project)
+                    .stream()
+                    .forEach(sprint -> deleteSprint(sprint));
             allService.getUserInProjectService().deleteAllUserByProject(project);
             allService.getProjectService().deleteProject(project.getId());
-            //TODO removing sprints and tasks
             projectLayout.removeComponent(oneProjectLayout);
-            Notification.show("Project was successfully deleted");
+            Notification.show("Project was successfully deleted", Notification.Type.TRAY_NOTIFICATION);
         });
         return deleteProject;
+    }
+
+    public void deleteSprint(Sprint sprint) {
+        List<Task> sprintTaskList = allService.getTaskService().getAllTaskBySprint(sprint);
+        sprintTaskList.stream()
+                .forEach(task -> allService.getTaskService().deleteTask(task));
+
+        allService.getSprintService().deleteSprint(sprint);
     }
 }

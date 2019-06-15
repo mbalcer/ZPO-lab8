@@ -151,7 +151,7 @@ public class SprintPanel {
         if (project.getLeader().equals(user)) {
             sprintGrid.addColumn(c -> "Delete",
                     new ButtonRenderer<>(btn -> {
-                        allService.getSprintService().deleteSprint(btn.getItem());
+                        projectPanel.deleteSprint(btn.getItem());
                         Notification.show("Sprint has been removed from the project", Notification.Type.TRAY_NOTIFICATION);
                         updateSprintTable();
                     }));

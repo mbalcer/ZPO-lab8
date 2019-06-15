@@ -23,12 +23,12 @@ public class SprintService {
         return sprintRepository.findAllByProject(project);
     }
 
-    public Sprint createSprint(Sprint user) {
-        return sprintRepository.save(user);
+    public Sprint createSprint(Sprint sprint) {
+        return sprintRepository.save(sprint);
     }
 
-    public Sprint updateSprint(Sprint user) {
-        return sprintRepository.save(user);
+    public Sprint updateSprint(Sprint sprint) {
+        return sprintRepository.save(sprint);
     }
 
     public void deleteSprint(Sprint sprint) {

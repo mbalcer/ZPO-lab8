@@ -29,15 +29,15 @@ public class TaskService {
         return taskRepository.findAllBySprintAndProgress(sprint, progress);
     }
 
-    public Task createTask(Task user) {
-        return taskRepository.save(user);
+    public Task createTask(Task task) {
+        return taskRepository.save(task);
     }
 
-    public Task updateTask(Task user) {
-        return taskRepository.save(user);
+    public Task updateTask(Task task) {
+        return taskRepository.save(task);
     }
 
-    public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
+    public void deleteTask(Task task) {
+        taskRepository.delete(task);
     }
 }
