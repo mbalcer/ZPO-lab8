@@ -52,50 +52,71 @@ public class SprintPanel {
     private Button initBtnAddSprint() {
         Button btnAddSprint = new Button("Add new sprint");
         btnAddSprint.setStyleName(ValoTheme.BUTTON_PRIMARY);
-        btnAddSprint.addClickListener(event -> {
-            Window windowAddSprint = new Window("Add new sprint");
-            windowAddSprint.setWidth(400.0f, Sizeable.Unit.PIXELS);
-            windowAddSprint.setModal(true);
-            windowAddSprint.setResizable(false);
-            windowAddSprint.center();
-
-            FormLayout form = new FormLayout();
-            form.setMargin(true);
-
-            DateField dateFrom = new DateField("Date from");
-            DateField dateTo = new DateField("Date to");
-            TextField maxStoryPoints = new TextField("Max story points");
-            Button addSprint = new Button("Add");
-            addSprint.setStyleName(ValoTheme.BUTTON_PRIMARY);
-            addSprint.addClickListener(add -> {
-                try {
-                    Integer plannedStoryPoints = Integer.parseInt(maxStoryPoints.getValue());
-                    List<Sprint> sprints = allService.getSprintService()
-                            .getAllSprintByProject(project)
-                            .stream()
-                            .filter(r -> (dateFrom.getValue().isBefore(r.getDateTo()) && dateFrom.getValue().isAfter(r.getDateFrom().minusDays(1)))
-                                    || (dateTo.getValue().isAfter(r.getDateFrom()) && dateTo.getValue().isBefore(r.getDateTo())))
-                            .collect(Collectors.toList());
-                    if (sprints.size() == 0) {
-                        Sprint newSprint = new Sprint(0l, dateFrom.getValue(), dateTo.getValue(), plannedStoryPoints, project);
-                        newSprint = allService.getSprintService().createSprint(newSprint);
-                        updateSprintTable();
-                        windowAddSprint.close();
-                        Notification.show("New sprint has been added", Notification.Type.TRAY_NOTIFICATION);
-                    } else
-                        Notification.show("The sprint you want to add overlaps dates with another sprint", Notification.Type.ERROR_MESSAGE);
-
-                } catch (NumberFormatException e) {
-                    Notification.show("Enter the correct number", Notification.Type.ERROR_MESSAGE);
-                }
-            });
-
-            form.addComponents(dateFrom, dateTo, maxStoryPoints, addSprint);
-            windowAddSprint.setContent(form);
-            LoginPanel.getCurrent().addWindow(windowAddSprint);
-        });
+        btnAddSprint.addClickListener(event -> initWindowSprint(new Sprint()));
 
         return btnAddSprint;
+    }
+
+    private void initWindowSprint(Sprint editSprint) {
+        Window windowAddSprint = new Window("Add/Edit new sprint");
+        windowAddSprint.setWidth(400.0f, Sizeable.Unit.PIXELS);
+        windowAddSprint.setModal(true);
+        windowAddSprint.setResizable(false);
+        windowAddSprint.center();
+
+        FormLayout form = new FormLayout();
+        form.setMargin(true);
+
+        DateField dateFrom = new DateField("Date from");
+        DateField dateTo = new DateField("Date to");
+        TextField maxStoryPoints = new TextField("Max story points");
+        Button addSprint = new Button("Add");
+        if (editSprint.getId() != null) {
+            dateFrom.setValue(editSprint.getDateFrom());
+            dateTo.setValue(editSprint.getDateTo());
+            maxStoryPoints.setValue(String.valueOf(editSprint.getPlannedStoryPoints()));
+            addSprint.setCaption("Edit");
+        }
+
+        addSprint.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        addSprint.addClickListener(add -> {
+            try {
+                Integer plannedStoryPoints = Integer.parseInt(maxStoryPoints.getValue());
+                List<Sprint> sprints = allService.getSprintService()
+                        .getAllSprintByProject(project)
+                        .stream()
+                        .filter(r -> (dateFrom.getValue().isBefore(r.getDateTo()) && dateFrom.getValue().isAfter(r.getDateFrom().minusDays(1)))
+                                || (dateTo.getValue().isAfter(r.getDateFrom()) && dateTo.getValue().isBefore(r.getDateTo())))
+                        .collect(Collectors.toList());
+
+                if (editSprint.getId() != null)
+                    sprints.remove(editSprint);
+
+                if (sprints.size() == 0) {
+                    if (editSprint.getId() != null) {
+                        editSprint.setPlannedStoryPoints(plannedStoryPoints);
+                        editSprint.setDateFrom(dateFrom.getValue().plusDays(1));
+                        editSprint.setDateTo(dateTo.getValue().plusDays(1));
+                        allService.getSprintService().updateSprint(editSprint);
+                        Notification.show("Sprint has been successfully edited", Notification.Type.TRAY_NOTIFICATION);
+                    } else  {
+                        Sprint newSprint = new Sprint(0l, dateFrom.getValue().plusDays(1), dateTo.getValue().plusDays(1), plannedStoryPoints, project);
+                        allService.getSprintService().createSprint(newSprint);
+                        Notification.show("New sprint has been added", Notification.Type.TRAY_NOTIFICATION);
+                    }
+                    updateSprintTable();
+                    windowAddSprint.close();
+                } else
+                    Notification.show("The sprint you want to add overlaps dates with another sprint", Notification.Type.ERROR_MESSAGE);
+
+            } catch (NumberFormatException e) {
+                Notification.show("Enter the correct number", Notification.Type.ERROR_MESSAGE);
+            }
+        });
+
+        form.addComponents(dateFrom, dateTo, maxStoryPoints, addSprint);
+        windowAddSprint.setContent(form);
+        LoginPanel.getCurrent().addWindow(windowAddSprint);
     }
 
     private Button initBtnBack() {
@@ -135,6 +156,8 @@ public class SprintPanel {
                         updateSprintTable();
                     }));
         }
+
+        sprintGrid.addItemClickListener(event -> initWindowSprint(event.getItem()));
 
         return sprintGrid;
     }
